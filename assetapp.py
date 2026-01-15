@@ -8,7 +8,7 @@ import time
 # 페이지 설정
 st.set_page_config(page_title="통합자산관리", layout="wide")
 
-# CSS를 이용해 표의 인덱스(번호) 열 숨기기
+# 인덱스(번호) 열 숨기기 CSS
 st.markdown("""
     <style>
     thead tr th:first-child {display:none}
@@ -21,25 +21,21 @@ def get_asset_info(symbol):
     # 1. 코인 체크
     try:
         p = pyupbit.get_current_price(f"KRW-{symbol}")
-        if p: return p, "KRW", "코인"
+        if p: return p, "KRW"
     except: pass
 
-    # 2. 주식 체크 (yfinance)
+    # 2. 주식 체크
     search_list = [symbol, symbol + ".KS", symbol + ".KQ"]
     for s in search_list:
         try:
             t = yf.Ticker(s)
             info = t.info
-            pre_price = info.get('preMarketPrice')
-            reg_price = info.get('regularMarketPrice') or info.get('previousClose')
-            
-            price = pre_price if pre_price else reg_price
+            price = info.get('preMarketPrice') or info.get('regularMarketPrice') or info.get('previousClose')
             if price:
                 currency = "KRW" if ".K" in s else "USD"
-                status = "장전(Pre)" if pre_price else "정규/종가"
-                return price, currency, status
+                return price, currency
         except: continue
-    return 0, "KRW", "미확인"
+    return 0, "KRW"
 
 def get_live_rate():
     try:
@@ -80,15 +76,17 @@ total_krw = 0
 display_data = []
 
 for a in st.session_state.assets:
-    price, curr, status = get_asset_info(a['symbol'])
+    price, curr = get_asset_info(a['symbol'])
     price_krw = price * rate if curr == "USD" else price
     valuation = price_krw * a['count']
     total_krw += valuation
     
+    # 수량 포맷팅: 소수점 이하가 0이면 정수로, 아니면 소수점 둘째자리까지
+    count_display = int(a['count']) if a['count'] == int(a['count']) else f"{a['count']:.2f}"
+    
     display_data.append({
         "자산명": a['symbol'],
-        "구분": status,
-        "수량": f"{a['count']:.2f}",
+        "수량": count_display,
         "현재가": f"{price:,.2f} ({curr})",
         "원화 평가액": f"₩{valuation:,.0f}"
     })
@@ -100,10 +98,10 @@ with col1:
 with col2:
     st.metric("실시간 환율 (USD/KRW)", f"{rate:,.2f}원")
 
-# 자산 현황 테이블 (Pandas를 이용해 인덱스 없이 출력)
+# 자산 현황 테이블
 if display_data:
     df = pd.DataFrame(display_data)
-    st.table(df) # st.table은 깔끔한 정적 표를 제공합니다.
+    st.table(df)
 else:
     st.info("왼쪽 사이드바를 이용해 자산을 추가해 주세요.")
 
