@@ -8,7 +8,7 @@ import time
 # 페이지 설정
 st.set_page_config(page_title="통합자산관리", layout="wide")
 
-# 인덱스(번호) 열 숨기기 CSS
+# 인덱스 숨기기 CSS
 st.markdown("""
     <style>
     thead tr th:first-child {display:none}
@@ -16,15 +16,26 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
+# ---------------------------------------------------------
+# [수정 포인트] 여기에 보유하신 자산을 입력해두면 항상 저장됩니다!
+# 형식: {"symbol": "티커", "count": 수량}
+# ---------------------------------------------------------
+DEFAULT_ASSETS = [
+    {"symbol": "BTC", "count": 0.21},
+    {"symbol": "ETH", "count": 3},
+    {"symbol": "TSLA", "count": 45}
+    {"symbol": "GOOGL", "count": 20}
+    {"symbol": "PLTR", "count": 30}
+    {"symbol": "BMNR", "count": 100}
+]
+
 def get_asset_info(symbol):
     symbol = symbol.upper()
-    # 1. 코인 체크
     try:
         p = pyupbit.get_current_price(f"KRW-{symbol}")
         if p: return p, "KRW"
     except: pass
 
-    # 2. 주식 체크
     search_list = [symbol, symbol + ".KS", symbol + ".KQ"]
     for s in search_list:
         try:
@@ -48,8 +59,9 @@ def get_live_rate():
 st.title("💰 통합자산관리")
 st.caption("30초마다 자동으로 데이터를 갱신합니다.")
 
+# 세션 상태에 기본 자산 로드 (처음 한 번만 실행)
 if 'assets' not in st.session_state:
-    st.session_state.assets = []
+    st.session_state.assets = DEFAULT_ASSETS
 
 rate = get_live_rate()
 
@@ -68,6 +80,8 @@ with st.sidebar:
             if not found:
                 st.session_state.assets.append({"symbol": new_sym, "count": new_cnt})
             st.success(f"{new_sym} 반영 완료!")
+            # 팁: 여기에 반영된 자산은 브라우저를 완전히 닫기 전까지만 유지됩니다.
+            # 영구 저장을 원하시면 코드 상단의 DEFAULT_ASSETS를 수정해 주세요.
             time.sleep(0.5)
             st.rerun()
 
@@ -81,7 +95,6 @@ for a in st.session_state.assets:
     valuation = price_krw * a['count']
     total_krw += valuation
     
-    # 수량 포맷팅: 소수점 이하가 0이면 정수로, 아니면 소수점 둘째자리까지
     count_display = int(a['count']) if a['count'] == int(a['count']) else f"{a['count']:.2f}"
     
     display_data.append({
@@ -91,14 +104,12 @@ for a in st.session_state.assets:
         "원화 평가액": f"₩{valuation:,.0f}"
     })
 
-# 상단 대시보드
 col1, col2 = st.columns(2)
 with col1:
     st.metric("총 자산 합계", f"₩{total_krw:,.0f}")
 with col2:
     st.metric("실시간 환율 (USD/KRW)", f"{rate:,.2f}원")
 
-# 자산 현황 테이블
 if display_data:
     df = pd.DataFrame(display_data)
     st.table(df)
@@ -108,6 +119,5 @@ else:
 st.divider()
 st.caption(f"마지막 업데이트: {datetime.now().strftime('%H:%M:%S')} (30초 간격 갱신)")
 
-# 30초 대기 후 리로드
 time.sleep(30)
 st.rerun()
