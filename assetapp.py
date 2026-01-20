@@ -21,11 +21,11 @@ st.markdown("""
 # 형식: {"symbol": "티커", "count": 수량}
 # ---------------------------------------------------------
 DEFAULT_ASSETS = [
-    {"symbol": "BTC", "count": 0.21},
+    {"symbol": "BTC", "count": 0.22},
     {"symbol": "ETH", "count": 3},
-    {"symbol": "TSLA", "count": 45},
-    {"symbol": "GOOGL", "count": 20},
-    {"symbol": "PLTR", "count": 30},
+    {"symbol": "TSLA", "count": 40},
+    {"symbol": "GOOGL", "count": 25},
+    {"symbol": "PLTR", "count": 25},
     {"symbol": "BMNR", "count": 100}
 ]
 
@@ -121,4 +121,5 @@ st.caption(f"마지막 업데이트: {datetime.now().strftime('%H:%M:%S')} (30�
 
 time.sleep(30)
 st.rerun()
+
 
