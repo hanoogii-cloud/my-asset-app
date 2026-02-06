@@ -24,7 +24,7 @@ DEFAULT_ASSETS = [
     {"symbol": "BTC", "count": 0.23},
     {"symbol": "ETH", "count": 3.0},
     {"symbol": "TSLA", "count": 40},
-    {"symbol": "GOOGL", "count": 27},
+    {"symbol": "GOOGL", "count": 28},
     {"symbol": "PLTR", "count": 20},
     {"symbol": "BMNR", "count": 100}
 ]
@@ -121,6 +121,7 @@ st.caption(f"마지막 업데이트: {datetime.now().strftime('%H:%M:%S')} (30�
 
 time.sleep(30)
 st.rerun()
+
 
 
 
