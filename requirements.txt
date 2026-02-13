@@ -1,4 +1,5 @@
 streamlit
 pyupbit
-yfinance
+finance-datareader
 pandas
+
