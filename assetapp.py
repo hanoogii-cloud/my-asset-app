@@ -1,4 +1,5 @@
 import streamlit as st
+import FinanceDataReader as fdr
 import pyupbit
 import yfinance as yf
 import pandas as pd
@@ -29,24 +30,55 @@ DEFAULT_ASSETS = [
     {"symbol": "BMNR", "count": 50}
 ]
 
+
+
 def get_asset_info(symbol):
     symbol = symbol.upper()
+    
+    # 1. 암호화폐 확인 (업비트)
     try:
         p = pyupbit.get_current_price(f"KRW-{symbol}")
         if p: return p, "KRW"
     except: pass
 
-    search_list = [symbol, symbol + ".KS", symbol + ".KQ"]
-    for s in search_list:
-        try:
-            t = yf.Ticker(s)
-            info = t.info
-            price = info.get('preMarketPrice') or info.get('regularMarketPrice') or info.get('previousClose')
-            if price:
-                currency = "KRW" if ".K" in s else "USD"
-                return price, currency
-        except: continue
+    # 2. 주식 확인 (국내/해외 통합)
+    try:
+        # FDR은 국내 주식(삼성전자 등)과 미국 주식(AAPL 등)을 동일한 함수로 조회 가능합니다.
+        # 최신 1일치 데이터를 가져와 마지막 종가를 선택합니다.
+        df = fdr.DataReader(symbol)
+        
+        if not df.empty:
+            price = df['Close'].iloc[-1]
+            
+            # 통화 구분 (FDR의 특징을 이용한 간이 구분)
+            # 숫자로만 된 종목 코드(국내)는 KRW, 영문은 USD로 처리
+            currency = "KRW" if symbol.isdigit() else "USD"
+            return float(price), currency
+            
+    except Exception as e:
+        print(f"Error fetching {symbol}: {e}")
+
     return 0, "KRW"
+
+
+#def get_asset_info(symbol):
+#    symbol = symbol.upper()
+#    try:
+#        p = pyupbit.get_current_price(f"KRW-{symbol}")
+#        if p: return p, "KRW"
+#    except: pass
+#
+#    search_list = [symbol, symbol + ".KS", symbol + ".KQ"]
+#    for s in search_list:
+#        try:
+#            t = yf.Ticker(s)
+#            info = t.info
+#            price = info.get('preMarketPrice') or info.get('regularMarketPrice') or info.get('previousClose')
+#            if price:
+#                currency = "KRW" if ".K" in s else "USD"
+#                return price, currency
+#        except: continue
+#    return 0, "KRW"
 
 def get_live_rate():
     try:
@@ -121,6 +153,7 @@ st.caption(f"마지막 업데이트: {datetime.now().strftime('%H:%M:%S')} (30�
 
 time.sleep(30)
 st.rerun()
+
 
 
 
