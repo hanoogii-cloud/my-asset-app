@@ -1,7 +1,7 @@
 import streamlit as st
 import FinanceDataReader as fdr
 import pyupbit
-#import yfinance as yf
+import yfinance as yf
 import pandas as pd
 from datetime import datetime
 import time
@@ -153,6 +153,7 @@ st.caption(f"마지막 업데이트: {datetime.now().strftime('%H:%M:%S')} (30�
 
 time.sleep(30)
 st.rerun()
+
 
 
 
