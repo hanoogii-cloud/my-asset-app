@@ -23,10 +23,10 @@ st.markdown("""
 # ---------------------------------------------------------
 DEFAULT_ASSETS = [
     {"symbol": "BTC", "count": 0.22},
-    {"symbol": "ETH", "count": 3.5},
+    {"symbol": "ETH", "count": 3},
     {"symbol": "TSLA", "count": 40},
     {"symbol": "GOOGL", "count": 30},
-    {"symbol": "PLTR", "count": 25}
+    {"symbol": "PLTR", "count": 20}
 ]
 
 
@@ -152,6 +152,7 @@ st.caption(f"마지막 업데이트: {datetime.now().strftime('%H:%M:%S')} (30�
 
 time.sleep(30)
 st.rerun()
+
 
 
 
