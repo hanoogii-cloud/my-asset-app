@@ -24,8 +24,8 @@ st.markdown("""
 DEFAULT_ASSETS = [
     {"symbol": "BTC", "count": 0.22},
     {"symbol": "ETH", "count": 3},
-    {"symbol": "TSLA", "count": 40},
-    {"symbol": "GOOGL", "count": 30},
+    {"symbol": "TSLA", "count": 45},
+    {"symbol": "GOOGL", "count": 25},
     {"symbol": "PLTR", "count": 20}
 ]
 
