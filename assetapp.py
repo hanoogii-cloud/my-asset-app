@@ -130,9 +130,9 @@ for detail in asset_details:
     
     # 통화에 따른 현재가 표시 형식 설정
     if detail['curr'] == "USD":
-        price_display = f"${detail['price']:,.2f} ({price_krw_1000:,.0f}천원)"
+        price_display = f"${detail['price']:,.2f} "
     else:
-        price_display = f"{price_krw_1000:,.0f}천원"
+        price_display = f"{price_krw_1000:,.0f}"
 
     display_data.append({
         "자산명": detail['symbol'],
