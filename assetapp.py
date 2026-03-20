@@ -40,15 +40,10 @@ def get_asset_info(symbol):
 
     # 2. 주식 확인 (국내/해외 통합)
     try:
-        # FDR은 국내 주식(삼성전자 등)과 미국 주식(AAPL 등)을 동일한 함수로 조회 가능합니다.
-        # 최신 1일치 데이터를 가져와 마지막 종가를 선택합니다.
         df = fdr.DataReader(symbol)
         
         if not df.empty:
             price = df['Close'].iloc[-1]
-            
-            # 통화 구분 (FDR의 특징을 이용한 간이 구분)
-            # 숫자로만 된 종목 코드(국내)는 KRW, 영문은 USD로 처리
             currency = "KRW" if symbol.isdigit() else "USD"
             return float(price), currency
             
@@ -68,7 +63,7 @@ def get_live_rate():
 st.title("💰 통합자산관리")
 st.caption("30초마다 자동으로 데이터를 갱신합니다.")
 
-# 세션 상태에 기본 자산 로드 (처음 한 번만 실행)
+# 세션 상태에 기본 자산 로드
 if 'assets' not in st.session_state:
     st.session_state.assets = DEFAULT_ASSETS
 
@@ -89,8 +84,6 @@ with st.sidebar:
             if not found:
                 st.session_state.assets.append({"symbol": new_sym, "count": new_cnt})
             st.success(f"{new_sym} 반영 완료!")
-            # 팁: 여기에 반영된 자산은 브라우저를 완전히 닫기 전까지만 유지됩니다.
-            # 영구 저장을 원하시면 코드 상단의 DEFAULT_ASSETS를 수정해 주세요.
             time.sleep(0.5)
             st.rerun()
 
@@ -98,7 +91,6 @@ with st.sidebar:
 total_krw = 0
 asset_details = []
 
-# 1. 먼저 전체 자산 총액을 계산하고 기본 데이터를 모읍니다.
 for a in st.session_state.assets:
     price, curr = get_asset_info(a['symbol'])
     price_krw = price * rate if curr == "USD" else price
@@ -115,30 +107,25 @@ for a in st.session_state.assets:
         "valuation": valuation
     })
 
-# 2. 총액을 바탕으로 비중(%)을 계산하고 화면 표시용 형식으로 변경합니다.
 display_data = []
 for detail in asset_details:
-    # 수량 표시 (정수면 소수점 생략)
     count_display = int(detail['count']) if detail['count'] == int(detail['count']) else f"{detail['count']:.2f}"
     
-    # 원화 가격을 1000원 단위로 변경하고 소수점 버림
+    # 원화 가격을 1000원 단위로 변경하고 소수점 버림 (현재가용)
     price_krw_1000 = int(detail['price_krw'] / 1000)
-    valuation_1000 = int(detail['valuation'] / 1000)
     
-    # 백분율(비중) 계산
     percentage = (detail['valuation'] / total_krw * 100) if total_krw > 0 else 0
     
-    # 통화에 따른 현재가 표시 형식 설정
     if detail['curr'] == "USD":
-        price_display = f"${detail['price']:,.2f} "
+        price_display = f"${detail['price']:,.2f} ({price_krw_1000:,.0f}천원)"
     else:
-        price_display = f"₩{price_krw_1000:,.0f}"
+        price_display = f"{price_krw_1000:,.0f}천원"
 
     display_data.append({
         "자산명": detail['symbol'],
         "수량": count_display,
         "현재가": price_display,
-        "평가액": valuation,
+        "평가액": f"₩{int(detail['valuation']):,.0f}", # 전체 금액 표시 및 (천원) 텍스트 제거
         "비중 (%)": f"{percentage:.1f}%"
     })
 
