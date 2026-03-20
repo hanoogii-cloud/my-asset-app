@@ -132,13 +132,13 @@ for detail in asset_details:
     if detail['curr'] == "USD":
         price_display = f"${detail['price']:,.2f} "
     else:
-        price_display = f"{price_krw_1000:,.0f}"
+        price_display = f"₩{price_krw_1000:,.0f}"
 
     display_data.append({
         "자산명": detail['symbol'],
         "수량": count_display,
         "현재가": price_display,
-        "평가액 (천원)": f"{valuation_1000:,.0f}",
+        "평가액": f"{valuation:,.0f}",
         "비중 (%)": f"{percentage:.1f}%"
     })
 
