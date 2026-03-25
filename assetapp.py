@@ -22,7 +22,7 @@ st.markdown("""
 # 형식: {"symbol": "티커", "count": 수량}
 # ---------------------------------------------------------
 DEFAULT_ASSETS = [
-    {"symbol": "BTC", "count": 0.22},
+    {"symbol": "BTC", "count": 0.21},
     {"symbol": "ETH", "count": 3},
     {"symbol": "TSLA", "count": 45},
     {"symbol": "GOOGL", "count": 25},
