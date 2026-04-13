@@ -9,7 +9,7 @@ import time
 # 페이지 설정
 st.set_page_config(page_title="통합자산관리", layout="wide")
 
-# 인덱스 숨기기 CSS
+# 인덱스 숨기기 및 테이블 스타일 CSS
 st.markdown("""
     <style>
     thead tr th:first-child {display:none}
@@ -17,40 +17,49 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# ---------------------------------------------------------
-# [수정 포인트] 여기에 보유하신 자산을 입력해두면 항상 저장됩니다!
-# 형식: {"symbol": "티커", "count": 수량}
-# ---------------------------------------------------------
+# 한국 주식 종목명 리스트 가져오기 (캐싱 처리하여 속도 최적화)
+@st.cache_data
+def get_krx_list():
+    df_krx = fdr.StockListing('KRX')
+    return dict(zip(df_krx['Code'], df_krx['Name']))
+
+krx_symbols = get_krx_list()
+
+# 기본 보유 자산 설정
 DEFAULT_ASSETS = [
     {"symbol": "BTC", "count": 0.22},
     {"symbol": "ETH", "count": 3},
     {"symbol": "TSLA", "count": 45},
     {"symbol": "GOOGL", "count": 27},
-    {"symbol": "304100", "count": 200}
+    {"symbol": "304100", "count": 200} # SOL 미국배당다우존스 예시
 ]
 
 def get_asset_info(symbol):
     symbol = symbol.upper()
+    name = symbol
     
     # 1. 암호화폐 확인 (업비트)
     try:
         p = pyupbit.get_current_price(f"KRW-{symbol}")
-        if p: return p, "KRW"
+        if p: return p, "KRW", symbol
     except: pass
 
-    # 2. 주식 확인 (국내/해외 통합)
+    # 2. 주식 확인
     try:
         df = fdr.DataReader(symbol)
-        
         if not df.empty:
             price = df['Close'].iloc[-1]
-            currency = "KRW" if symbol.isdigit() else "USD"
-            return float(price), currency
-            
+            if symbol.isdigit(): # 한국 주식인 경우
+                currency = "KRW"
+                name = krx_symbols.get(symbol, symbol) # 종목명으로 변환
+            else:
+                currency = "USD"
+                name = symbol
+            return float(price), currency, name
     except Exception as e:
-        print(f"Error fetching {symbol}: {e}")
+        pass
 
-    return 0, "KRW"
+    return 0, "KRW", symbol
 
 def get_live_rate():
     try:
@@ -60,10 +69,9 @@ def get_live_rate():
         return 1350.0
 
 # --- 메인 UI ---
-st.title("💰 통합자산관리")
-st.caption("30초마다 자동으로 데이터를 갱신합니다.")
+st.title("💰 통합자산관리 시스템")
+st.caption("30초마다 자동으로 데이터를 갱신하며, 금액은 전체 단위로 표시됩니다.")
 
-# 세션 상태에 기본 자산 로드
 if 'assets' not in st.session_state:
     st.session_state.assets = DEFAULT_ASSETS
 
@@ -87,46 +95,42 @@ with st.sidebar:
             time.sleep(0.5)
             st.rerun()
 
-# --- 데이터 계산 (백분율 계산을 위한 2-Pass 구조) ---
+# --- 데이터 계산 ---
 total_krw = 0
 asset_details = []
 
 for a in st.session_state.assets:
-    price, curr = get_asset_info(a['symbol'])
+    price, curr, name = get_asset_info(a['symbol'])
     price_krw = price * rate if curr == "USD" else price
     valuation = price_krw * a['count']
     
     total_krw += valuation
     
     asset_details.append({
-        "symbol": a['symbol'],
+        "name": name,
         "count": a['count'],
         "price": price,
         "curr": curr,
-        "price_krw": price_krw,
         "valuation": valuation
     })
 
 display_data = []
 for detail in asset_details:
-    count_display = int(detail['count']) if detail['count'] == int(detail['count']) else f"{detail['count']:.2f}"
-    
-    # 원화 가격을 1000원 단위로 변경하고 소수점 버림 (현재가용)
-    price_krw_1000 = int(detail['price_krw'] / 1000)
-    
+    count_display = f"{detail['count']:,}" if detail['count'] == int(detail['count']) else f"{detail['count']:,.2f}"
     percentage = (detail['valuation'] / total_krw * 100) if total_krw > 0 else 0
     
+    # 현재가 포맷팅
     if detail['curr'] == "USD":
-        price_display = f"${detail['price']:,.2f} ({price_krw_1000:,.0f}천원)"
+        price_display = f"${detail['price']:,.2f}"
     else:
-        price_display = f"{price_krw_1000:,.0f}천원"
+        price_display = f"₩{int(detail['price']):,}"
 
     display_data.append({
-        "자산명": detail['symbol'],
+        "종목": detail['name'],
         "수량": count_display,
         "현재가": price_display,
-        "평가액": f"₩{int(detail['valuation']):,.0f}", # 전체 금액 표시 및 (천원) 텍스트 제거
-        "비중 (%)": f"{percentage:.1f}%"
+        "평가액": f"₩{int(detail['valuation']):,}",
+        "비중(%)": f"{percentage:.1;f}%"
     })
 
 # --- 화면 출력 ---
