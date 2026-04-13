@@ -112,14 +112,17 @@ for detail in asset_details:
     count_display = int(detail['count']) if detail['count'] == int(detail['count']) else f"{detail['count']:.2f}"
     
     # 원화 가격을 1000원 단위로 변경하고 소수점 버림 (현재가용)
-    price_krw_1000 = int(detail['price_krw'] / 1000)
+#    price_krw_1000 = int(detail['price_krw'] / 1000)
+     price_krw_1000 = int(price_krw)
     
     percentage = (detail['valuation'] / total_krw * 100) if total_krw > 0 else 0
     
     if detail['curr'] == "USD":
-        price_display = f"${detail['price']:,.2f} ({price_krw_1000:,.0f}천원)"
+        price_display = f"${detail['price']:,.2f} ({price_krw_1000:,.0f})"
+#        price_display = f"${detail['price']:,.2f} ({price_krw_1000:,.0f}천원)"
     else:
-        price_display = f"{price_krw_1000:,.0f}천원"
+        price_display = f"{price_krw_1000:,.0f}"
+#        price_display = f"{price_krw_1000:,.0f}천원"
 
     display_data.append({
         "자산명": detail['symbol'],
