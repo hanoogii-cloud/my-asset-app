@@ -113,7 +113,7 @@ for detail in asset_details:
     
     # 원화 가격을 1000원 단위로 변경하고 소수점 버림 (현재가용)
 #    price_krw_1000 = int(detail['price_krw'] / 1000)
-     price_krw_1000 = int(price_krw)
+     price_krw_1000 = int(detail['price_krw'])
     
     percentage = (detail['valuation'] / total_krw * 100) if total_krw > 0 else 0
     
