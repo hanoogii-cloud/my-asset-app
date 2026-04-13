@@ -9,7 +9,7 @@ import time
 # 페이지 설정
 st.set_page_config(page_title="통합자산관리", layout="wide")
 
-# 인덱스 숨기기 및 테이블 스타일 CSS
+# 인덱스 숨기기 CSS
 st.markdown("""
     <style>
     thead tr th:first-child {display:none}
@@ -17,47 +17,49 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# 한국 주식 종목명 리스트 가져오기 (캐싱 처리하여 속도 최적화)
+# 한국 주식 종목 리스트 (캐싱을 통해 속도 향상)
 @st.cache_data
-def get_krx_list():
-    df_krx = fdr.StockListing('KRX')
-    return dict(zip(df_krx['Code'], df_krx['Name']))
+def get_krx_names():
+    try:
+        df_krx = fdr.StockListing('KRX')
+        return dict(zip(df_krx['Code'], df_krx['Name']))
+    except:
+        return {}
 
-krx_symbols = get_krx_list()
+krx_symbols = get_krx_names()
 
-# 기본 보유 자산 설정
+# 기본 자산 설정
 DEFAULT_ASSETS = [
     {"symbol": "BTC", "count": 0.22},
     {"symbol": "ETH", "count": 3},
     {"symbol": "TSLA", "count": 45},
     {"symbol": "GOOGL", "count": 27},
-    {"symbol": "304100", "count": 200} # SOL 미국배당다우존스 예시
+    {"symbol": "304100", "count": 200} # 솔트룩스
 ]
 
 def get_asset_info(symbol):
     symbol = symbol.upper()
     name = symbol
     
-    # 1. 암호화폐 확인 (업비트)
+    # 1. 암호화폐 (업비트)
     try:
         p = pyupbit.get_current_price(f"KRW-{symbol}")
         if p: return p, "KRW", symbol
     except: pass
 
-    # 2. 주식 확인
+    # 2. 주식 (국내/해외)
     try:
         df = fdr.DataReader(symbol)
         if not df.empty:
             price = df['Close'].iloc[-1]
-            if symbol.isdigit(): # 한국 주식인 경우
+            if symbol.isdigit(): # 한국 종목 코드인 경우
                 currency = "KRW"
-                name = krx_symbols.get(symbol, symbol) # 종목명으로 변환
+                name = krx_symbols.get(symbol, symbol) # 종목명으로 치환
             else:
                 currency = "USD"
                 name = symbol
             return float(price), currency, name
-    except Exception as e:
-        pass
+    except: pass
 
     return 0, "KRW", symbol
 
@@ -69,19 +71,18 @@ def get_live_rate():
         return 1350.0
 
 # --- 메인 UI ---
-st.title("💰 통합자산관리 시스템")
-st.caption("30초마다 자동으로 데이터를 갱신하며, 금액은 전체 단위로 표시됩니다.")
+st.title("💰 통합자산관리")
 
 if 'assets' not in st.session_state:
     st.session_state.assets = DEFAULT_ASSETS
 
 rate = get_live_rate()
 
+# 사이드바 입력창
 with st.sidebar:
     st.header("➕ 자산 추가/수정")
     new_sym = st.text_input("티커 (예: BTC, NVDA, 005930)").upper()
-    new_cnt = st.number_input("보유 수량", min_value=0.0, step=0.01, format="%.2f")
-    
+    new_cnt = st.number_input("보유 수량", min_value=0.0, step=0.01)
     if st.button("포트폴리오에 반영"):
         if new_sym:
             found = False
@@ -91,22 +92,19 @@ with st.sidebar:
                     found = True; break
             if not found:
                 st.session_state.assets.append({"symbol": new_sym, "count": new_cnt})
-            st.success(f"{new_sym} 반영 완료!")
-            time.sleep(0.5)
             st.rerun()
 
 # --- 데이터 계산 ---
 total_krw = 0
-asset_details = []
+temp_details = []
 
 for a in st.session_state.assets:
     price, curr, name = get_asset_info(a['symbol'])
     price_krw = price * rate if curr == "USD" else price
     valuation = price_krw * a['count']
-    
     total_krw += valuation
     
-    asset_details.append({
+    temp_details.append({
         "name": name,
         "count": a['count'],
         "price": price,
@@ -114,22 +112,23 @@ for a in st.session_state.assets:
         "valuation": valuation
     })
 
+# 테이블용 데이터 구성
 display_data = []
-for detail in asset_details:
-    count_display = f"{detail['count']:,}" if detail['count'] == int(detail['count']) else f"{detail['count']:,.2f}"
-    percentage = (detail['valuation'] / total_krw * 100) if total_krw > 0 else 0
+for d in temp_details:
+    percentage = (d['valuation'] / total_krw * 100) if total_krw > 0 else 0
     
-    # 현재가 포맷팅
-    if detail['curr'] == "USD":
-        price_display = f"${detail['price']:,.2f}"
-    else:
-        price_display = f"₩{int(detail['price']):,}"
+    # 수량 표시 (정수면 깔끔하게, 소수면 2자리까지)
+    count_str = f"{d['count']:,}" if d['count'] == int(d['count']) else f"{d['count']:,.2f}"
+    
+    # 현재가 표시 ($ 또는 ₩ 기호 포함 전체 금액)
+    price_str = f"${d['price']:,.2f}" if d['curr'] == "USD" else f"₩{int(d['price']):,}"
 
+    # 리스트에 딕셔너리 추가 (키 이름이 그대로 헤더가 됩니다)
     display_data.append({
-        "종목": detail['name'],
-        "수량": count_display,
-        "현재가": price_display,
-        "평가액": f"₩{int(detail['valuation']):,}",
+        "종목": d['name'],
+        "수량": count_str,
+        "현재가": price_str,
+        "평가액": f"₩{int(d['valuation']):,}",
         "비중(%)": f"{percentage:.1f}%"
     })
 
@@ -141,10 +140,9 @@ with col2:
     st.metric("실시간 환율 (USD/KRW)", f"{rate:,.2f}원")
 
 if display_data:
+    # 딕셔너리의 키가 테이블의 헤더 이름이 됩니다.
     df = pd.DataFrame(display_data)
     st.table(df)
-else:
-    st.info("왼쪽 사이드바를 이용해 자산을 추가해 주세요.")
 
 st.divider()
 st.caption(f"마지막 업데이트: {datetime.now().strftime('%H:%M:%S')} (30초 간격 갱신)")
