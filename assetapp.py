@@ -24,9 +24,9 @@ st.markdown("""
 DEFAULT_ASSETS = [
     {"symbol": "BTC", "count": 0.22},
     {"symbol": "ETH", "count": 3},
-    {"symbol": "TSLA", "count": 50},
-    {"symbol": "GOOGL", "count": 30},
-    {"symbol": "PLTR", "count": 0}
+    {"symbol": "TSLA", "count": 45},
+    {"symbol": "GOOGL", "count": 27},
+    {"symbol": "304100", "count": 200}
 ]
 
 def get_asset_info(symbol):
