@@ -130,7 +130,7 @@ for detail in asset_details:
         "수량": count_display,
         "현재가": price_display,
         "평가액": f"₩{int(detail['valuation']):,}",
-        "비중(%)": f"{percentage:.1;f}%"
+        "비중(%)": f"{percentage:.1f}%"
     })
 
 # --- 화면 출력 ---
