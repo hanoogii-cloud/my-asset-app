@@ -52,7 +52,7 @@ def get_asset_info(symbol):
         df = fdr.DataReader(symbol)
         if not df.empty:
             price = df['Close'].iloc[-1]
-            if symbol.isdigit(): # 한국 종목 코드인 경우
+            if symbol[0].isdigit(): # 한국 종목 코드인 경우
                 currency = "KRW"
                 name = krx_symbols.get(symbol, symbol) # 종목명으로 치환
             else:
