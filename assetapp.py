@@ -32,9 +32,9 @@ krx_symbols = get_krx_names()
 DEFAULT_ASSETS = [
     {"symbol": "BTC", "count": 0.24},
     {"symbol": "ETH", "count": 3},
-    {"symbol": "TSLA", "count": 41},
+    {"symbol": "TSLA", "count": 43},
     {"symbol": "GOOGL", "count": 25},
-    {"symbol": "PLTR", "count": 20},
+    {"symbol": "PLTR", "count": 15},
     {"symbol": "0183J0", "count": 300} 
 ]
 
