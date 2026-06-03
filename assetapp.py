@@ -30,8 +30,8 @@ krx_symbols = get_krx_names()
 
 # 기본 자산 설정
 DEFAULT_ASSETS = [
-    {"symbol": "BTC", "count": 0.25},
-    {"symbol": "ETH", "count": 3},
+    {"symbol": "BTC", "count": 0.22},
+    {"symbol": "ETH", "count": 4},
     {"symbol": "TSLA", "count": 43},
     {"symbol": "GOOGL", "count": 30},
 #    {"symbol": "PLTR", "count": 10},
