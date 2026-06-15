@@ -35,7 +35,7 @@ DEFAULT_ASSETS = [
     {"symbol": "TSLA", "count": 45},
     {"symbol": "GOOGL", "count": 30},
 #    {"symbol": "PLTR", "count": 10},
-    {"symbol": "0183J0", "count": 200} 
+    {"symbol": "304100", "count": 200} 
 ]
 
 def get_asset_info(symbol):
