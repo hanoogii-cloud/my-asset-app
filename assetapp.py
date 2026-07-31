@@ -9,13 +9,7 @@ import time
 # 페이지 설정
 st.set_page_config(page_title="통합자산관리", layout="wide")
 
-# 인덱스 숨기기 CSS
-st.markdown("""
-    <style>
-    thead tr th:first-child {display:none}
-    tbody th {display:none}
-    </style>
-    """, unsafe_allow_html=True)
+# (인덱스 숨기기 CSS 제거 - st.dataframe의 hide_index=True 사용)
 
 # 한국 주식 종목 리스트 (캐싱을 통해 속도 향상)
 @st.cache_data
@@ -27,6 +21,25 @@ def get_krx_names():
         return {}
 
 krx_symbols = get_krx_names()
+
+# 한국 거래소 목록에 없거나 가져오기 실패한 경우 네이버 금융에서 종목명 조회
+@st.cache_data
+def get_naver_stock_name(symbol):
+    try:
+        import urllib.request
+        import re
+        url = f"https://finance.naver.com/item/main.naver?code={symbol}"
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=3) as response:
+            html = response.read().decode('utf-8', 'ignore')
+            match = re.search(r'<title>(.*?)</title>', html)
+            if match:
+                name = match.group(1).split(':')[0].strip()
+                if name:
+                    return name
+    except:
+        pass
+    return symbol
 
 # 기본 자산 설정
 DEFAULT_ASSETS = [
@@ -58,7 +71,9 @@ def get_asset_info(symbol):
             price = df['Close'].iloc[-1]
             if symbol[0].isdigit(): # 한국 종목 코드인 경우
                 currency = "KRW"
-                name = krx_symbols.get(symbol, symbol) # 종목명으로 치환
+                name = krx_symbols.get(symbol) # 종목명으로 치환
+                if not name:
+                    name = get_naver_stock_name(symbol)
             else:
                 currency = "USD"
                 name = symbol
@@ -146,7 +161,7 @@ with col2:
 if display_data:
     # 딕셔너리의 키가 테이블의 헤더 이름이 됩니다.
     df = pd.DataFrame(display_data)
-    st.table(df)
+    st.dataframe(df, use_container_width=True, hide_index=True)
 
 st.divider()
 st.caption(f"마지막 업데이트: {datetime.now().strftime('%H:%M:%S')} (30초 간격 갱신)")
