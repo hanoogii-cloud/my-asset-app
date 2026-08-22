@@ -374,7 +374,13 @@ else:
             # --- 그래프 시각화 ---
             st.divider()
             
+            # 마지막 날짜 기준 평가액이 높은 자산 순서대로 컬럼 정렬 (범례 정렬 및 누적 영역 아래쪽 배치 목적)
+            latest_val = df_val.drop(columns=['Total'], errors='ignore').iloc[-1]
+            sorted_asset_cols = latest_val.sort_values(ascending=False).index.tolist()
+            
             # 1. 총 자산 가치 변화 그래프 (Line Chart)
+            st.subheader("📊 총 자산 가치 변화 추이 (KRW)")
+            
             # Y축 범위를 데이터의 최솟값과 5,000만원 중 더 낮은 값으로 보정하여 시작점 설정
             ymin = min(50000000.0, float(df_val['Total'].min()) * 0.98)
             ymax = float(df_val['Total'].max()) * 1.02
@@ -384,64 +390,74 @@ else:
                 df_val_reset,
                 x='Date',
                 y='Total',
-                labels={'Date': '날짜', 'Total': '평가액 (KRW)'},
-                title="📊 총 자산 가치 변화 추이 (KRW)"
+                labels={'Date': '날짜', 'Total': '평가액 (KRW)'}
             )
             fig_total.update_layout(
                 yaxis=dict(range=[ymin, ymax], tickformat=",.0f"),
-                xaxis=dict(title="날짜"),
+                xaxis=dict(title=None),
                 hovermode="x unified",
-                margin=dict(l=40, r=40, t=60, b=40)
+                margin=dict(l=40, r=40, t=20, b=40)
             )
-            st.plotly_chart(fig_total, use_container_width=True)
+            fig_total.update_traces(
+                hovertemplate="₩%{y:,.0f}<extra></extra>"
+            )
+            st.plotly_chart(fig_total, use_container_width=True, config={'displaylogo': False})
             
             # 2. 자산별 평가액 변화 그래프 (Line Chart)
-            asset_cols = [c for c in df_val.columns if c != 'Total']
+            st.subheader("📈 자산별 평가액 변화 추이 (KRW)")
+            
             fig_assets = px.line(
                 df_val_reset,
                 x='Date',
-                y=asset_cols,
-                labels={'Date': '날짜', 'value': '평가액 (KRW)', 'variable': '자산'},
-                title="📈 자산별 평가액 변화 추이 (KRW)"
+                y=sorted_asset_cols,
+                labels={'Date': '날짜', 'value': '평가액 (KRW)', 'variable': '자산'}
             )
             fig_assets.update_layout(
                 yaxis=dict(tickformat=",.0f"),
-                xaxis=dict(title="날짜"),
+                xaxis=dict(title=None),
                 hovermode="x unified",
                 legend=dict(
                     title=None,
                     orientation="h",
-                    yanchor="bottom",
-                    y=-0.3,
+                    yanchor="top",
+                    y=-0.15,
                     xanchor="center",
                     x=0.5
                 ),
-                margin=dict(l=40, r=40, t=60, b=80)
+                margin=dict(l=40, r=40, t=20, b=120)
             )
-            st.plotly_chart(fig_assets, use_container_width=True)
+            fig_assets.update_traces(
+                hovertemplate="₩%{y:,.0f}<extra></extra>"
+            )
+            st.plotly_chart(fig_assets, use_container_width=True, config={'displaylogo': False})
             
             # 3. 자산별 비중 변화 그래프 (Stacked Area Chart)
+            st.subheader("🍰 자산별 비중 변화 추이 (%)")
+            
             df_weight_reset = df_weight.reset_index().rename(columns={'index': 'Date'})
             fig_weight = px.area(
                 df_weight_reset,
                 x='Date',
-                y=df_weight.columns.tolist(),
-                labels={'Date': '날짜', 'value': '비중 (%)', 'variable': '자산'},
-                title="🍰 자산별 비중 변화 추이 (%)"
+                y=sorted_asset_cols,
+                labels={'Date': '날짜', 'value': '비중 (%)', 'variable': '자산'}
             )
             fig_weight.update_layout(
                 yaxis=dict(ticksuffix="%", range=[0, 100]),
-                xaxis=dict(title="날짜"),
+                xaxis=dict(title=None),
                 hovermode="x unified",
                 legend=dict(
                     title=None,
                     orientation="h",
-                    yanchor="bottom",
-                    y=-0.3,
+                    yanchor="top",
+                    y=-0.15,
                     xanchor="center",
                     x=0.5
                 ),
-                margin=dict(l=40, r=40, t=60, b=80)
+                margin=dict(l=40, r=40, t=20, b=120)
             )
-            st.plotly_chart(fig_weight, use_container_width=True)
+            fig_weight.update_traces(
+                hovertemplate="%{y:.1f}%<extra></extra>"
+            )
+            st.plotly_chart(fig_weight, use_container_width=True, config={'displaylogo': False})
+
 
