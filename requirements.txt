@@ -3,5 +3,6 @@ pyupbit
 yfinance
 finance-datareader
 pandas
+plotly
 
 
