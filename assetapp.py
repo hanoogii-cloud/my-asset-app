@@ -5,6 +5,7 @@ import yfinance as yf
 import pandas as pd
 from datetime import datetime
 import time
+import plotly.express as px
 
 # 페이지 설정
 st.set_page_config(page_title="통합자산관리", layout="wide")
@@ -372,13 +373,75 @@ else:
             
             # --- 그래프 시각화 ---
             st.divider()
-            st.subheader("📊 총 자산 가치 변화 추이 (KRW)")
-            st.line_chart(df_val['Total'])
             
-            st.subheader("📈 자산별 평가액 변화 추이 (KRW)")
+            # 1. 총 자산 가치 변화 그래프 (Line Chart)
+            # Y축 범위를 데이터의 최솟값과 5,000만원 중 더 낮은 값으로 보정하여 시작점 설정
+            ymin = min(50000000.0, float(df_val['Total'].min()) * 0.98)
+            ymax = float(df_val['Total'].max()) * 1.02
+            
+            df_val_reset = df_val.reset_index().rename(columns={'index': 'Date'})
+            fig_total = px.line(
+                df_val_reset,
+                x='Date',
+                y='Total',
+                labels={'Date': '날짜', 'Total': '평가액 (KRW)'},
+                title="📊 총 자산 가치 변화 추이 (KRW)"
+            )
+            fig_total.update_layout(
+                yaxis=dict(range=[ymin, ymax], tickformat=",.0f"),
+                xaxis=dict(title="날짜"),
+                hovermode="x unified",
+                margin=dict(l=40, r=40, t=60, b=40)
+            )
+            st.plotly_chart(fig_total, use_container_width=True)
+            
+            # 2. 자산별 평가액 변화 그래프 (Line Chart)
             asset_cols = [c for c in df_val.columns if c != 'Total']
-            st.line_chart(df_val[asset_cols])
+            fig_assets = px.line(
+                df_val_reset,
+                x='Date',
+                y=asset_cols,
+                labels={'Date': '날짜', 'value': '평가액 (KRW)', 'variable': '자산'},
+                title="📈 자산별 평가액 변화 추이 (KRW)"
+            )
+            fig_assets.update_layout(
+                yaxis=dict(tickformat=",.0f"),
+                xaxis=dict(title="날짜"),
+                hovermode="x unified",
+                legend=dict(
+                    title=None,
+                    orientation="h",
+                    yanchor="bottom",
+                    y=-0.3,
+                    xanchor="center",
+                    x=0.5
+                ),
+                margin=dict(l=40, r=40, t=60, b=80)
+            )
+            st.plotly_chart(fig_assets, use_container_width=True)
             
-            st.subheader("🍰 자산별 비중 변화 추이 (%)")
-            st.area_chart(df_weight)
+            # 3. 자산별 비중 변화 그래프 (Stacked Area Chart)
+            df_weight_reset = df_weight.reset_index().rename(columns={'index': 'Date'})
+            fig_weight = px.area(
+                df_weight_reset,
+                x='Date',
+                y=df_weight.columns.tolist(),
+                labels={'Date': '날짜', 'value': '비중 (%)', 'variable': '자산'},
+                title="🍰 자산별 비중 변화 추이 (%)"
+            )
+            fig_weight.update_layout(
+                yaxis=dict(ticksuffix="%", range=[0, 100]),
+                xaxis=dict(title="날짜"),
+                hovermode="x unified",
+                legend=dict(
+                    title=None,
+                    orientation="h",
+                    yanchor="bottom",
+                    y=-0.3,
+                    xanchor="center",
+                    x=0.5
+                ),
+                margin=dict(l=40, r=40, t=60, b=80)
+            )
+            st.plotly_chart(fig_weight, use_container_width=True)
 
