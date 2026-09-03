@@ -48,7 +48,7 @@ DEFAULT_ASSETS = [
     {"symbol": "ETH", "count": 3},
     {"symbol": "TSLA", "count": 45},
     {"symbol": "GOOGL", "count": 10},
-    {"symbol": "SPCX", "count": 44},
+    {"symbol": "SPCX", "count": 45},
     {"symbol": "BMNR", "count": 50},
 #    {"symbol": "000660", "count": 2},
     {"symbol": "005935", "count": 20},
