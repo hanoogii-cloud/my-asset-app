@@ -51,7 +51,7 @@ DEFAULT_ASSETS = [
     {"symbol": "PLTR", "count": 20},
     {"symbol": "BMNR", "count": 100},
 #    {"symbol": "GOOGL", "count": 3},
-    {"symbol": "005935", "count": 20},
+    {"symbol": "005935", "count": 30},
     {"symbol": "005930", "count": 20} 
 ]
 
