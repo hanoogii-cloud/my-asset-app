@@ -44,7 +44,7 @@ def get_naver_stock_name(symbol):
 
 # 기본 자산 설정
 DEFAULT_ASSETS = [
-    {"symbol": "BTC", "count": 0.16},
+    {"symbol": "BTC", "count": 0.17},
     {"symbol": "ETH", "count": 4},
     {"symbol": "TSLA", "count": 37},
     {"symbol": "SPCX", "count": 50},
