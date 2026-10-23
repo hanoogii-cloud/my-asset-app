@@ -47,11 +47,11 @@ DEFAULT_ASSETS = [
     {"symbol": "BTC", "count": 0.17},
     {"symbol": "ETH", "count": 4},
     {"symbol": "TSLA", "count": 35},
-    {"symbol": "SPCX", "count": 50},
+    {"symbol": "SPCX", "count": 60},
     {"symbol": "PLTR", "count": 20},
     {"symbol": "BMNR", "count": 100},
 #    {"symbol": "GOOGL", "count": 3},
-    {"symbol": "005935", "count": 30},
+    {"symbol": "005935", "count": 20},
     {"symbol": "005930", "count": 20} 
 ]
 
