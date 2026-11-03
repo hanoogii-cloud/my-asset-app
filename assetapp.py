@@ -46,9 +46,9 @@ def get_naver_stock_name(symbol):
 DEFAULT_ASSETS = [
     {"symbol": "BTC", "count": 0.17},
     {"symbol": "ETH", "count": 4},
-    {"symbol": "TSLA", "count": 35},
+    {"symbol": "TSLA", "count": 33},
     {"symbol": "SPCX", "count": 60},
-    {"symbol": "PLTR", "count": 26},
+    {"symbol": "PLTR", "count": 30},
 #    {"symbol": "BMNR", "count": 60},
 #    {"symbol": "GOOGL", "count": 10},
     {"symbol": "005935", "count": 50},
